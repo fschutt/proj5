@@ -1,5 +1,6 @@
 use traits::Ellipsoid;
 
+#[derive(Debug, Copy, Clone)]
 pub struct WGS84Ellipsoid;
 
 impl Ellipsoid for WGS84Ellipsoid {

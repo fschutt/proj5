@@ -1,7 +1,7 @@
 //! Ellipsoid module
 
 use coordinate_buf::CoordinateBuf;
-use lonlat::LonLatSystem;
+use lonlat::LonLatBuf;
 
 // The general idea is: If Coordinate-reference-system (CRS) A can project in CRS B
 // and CRS B can project into CRS C, then it should be possible to project from 
@@ -16,7 +16,7 @@ use lonlat::LonLatSystem;
 // project in-and-out. A good coordinate system would be (latitude, longitude). However,
 // you'd also need to make sure that the ellipsoids are the same:
 
-pub trait Ellipsoid {
+pub trait Ellipsoid: Copy + Clone {
     /// Get semi-major axis A in meter
     fn get_a(&self) -> f64;
     /// Get semi-minor axis B in meter
@@ -36,27 +36,35 @@ pub trait Ellipsoid {
         self.get_rotation() == other.get_rotation() &&
         self.get_scaling() == other.get_scaling()
     }
-
-    // Project data from Ellipsoid A to Ellipsoid B
-    // project_to_ellipsoid<E: Ellipsoid, F: Ellipsoid>(&self, data: CoordinateBuf<C, E>) -> CoordinateBuf<C, F> { }
-}
-
-pub trait Crs: ToLonLat + FromLonLat {
-    // note: leaving out EB: Ellipsoid, this must be changed later
-    fn project_to<C: Crs, E: Ellipsoid>(self) -> CoordinateBuf<C, E>;
-}
-
-impl<CA, E> Crs for CoordinateBuf<CA, E> where CA: Crs, E: Ellipsoid {
-    fn project_to<CB: Crs>(self) {
-        let temp = ToLonLat::to_lon_lat::<E>(self);
-        FromLonLat::from_lon_lat::<CB, E>(temp)
-    }
 }
 
 pub trait ToLonLat {
-    fn to_lon_lat<C: Crs, E: Ellipsoid>(data: CoordinateBuf<C, E>) -> LonLatSystem<E>;
+    fn to_lon_lat<C: Crs, E: Ellipsoid>(&self, data: CoordinateBuf<C, E>) -> LonLatBuf<E>;
 }
 
 pub trait FromLonLat {
-    fn from_lon_lat<C: Crs, E: Ellipsoid>(data: LonLatSystem<E>) -> CoordinateBuf<C, E>;
+    fn from_lon_lat<C: Crs, E: Ellipsoid>(&self, data: LonLatBuf<E>) -> CoordinateBuf<C, E>;
+}
+
+pub trait Crs: ToLonLat + FromLonLat + Clone {
+    fn project_to<C: Crs, E: Ellipsoid>(self, other_crs: &C, other_ellipsoid: &E) -> CoordinateBuf<C, E>;
+}
+
+impl<CA, E> ToLonLat for CoordinateBuf<CA, E> where CA: Crs, E: Ellipsoid {
+    fn to_lon_lat<C: Crs, EA: Ellipsoid>(&self, data: CoordinateBuf<C, EA>) -> LonLatBuf<EA> {
+        self.crs.to_lon_lat(data)
+    }
+}
+
+impl<CA, E> FromLonLat for CoordinateBuf<CA, E> where CA: Crs, E: Ellipsoid {
+    fn from_lon_lat<C: Crs, EA: Ellipsoid>(&self, data: LonLatBuf<EA>) -> CoordinateBuf<C, EA> {
+        self.crs.from_lon_lat(data)
+    }
+}
+
+impl<CA, EA> Crs for CoordinateBuf<CA, EA> where CA: Crs, EA: Ellipsoid {
+    fn project_to<CB: Crs, EB: Ellipsoid>(self, other_crs: &CB, other_ellipsoid: &EB) -> CoordinateBuf<CB, EB> {
+        let temp = self.crs.clone().to_lon_lat::<CA, EA>(self);
+        other_crs.from_lon_lat::<CB, EB>(temp.project_to_ellipsoid(*other_ellipsoid))
+    }
 }

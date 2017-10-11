@@ -14,7 +14,8 @@ pub use traits::{
     Crs,
 };
 
-pub use lonlat::LonLatSystem;
+pub use lonlat::LonLatBuf;
+pub use coordinate_buf::CoordinateBuf;
 
 pub use coordinate_systems::merc::MercatorSystem;
 pub use coordinate_systems::utm::UTMSystem;
