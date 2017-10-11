@@ -1,10 +1,9 @@
-use traits::{Ellipsoid, ToLonLat, FromLonLat, Crs};
+use traits::{Ellipsoid, ToLonLat, FromLonLat, ToFromLonLat, Crs};
 use lonlat_buf::LonLatBuf;
 
-#[derive(Debug, Clone)]
-pub struct CoordinateBuf<C: ToLonLat + FromLonLat, E: Ellipsoid> {
+pub struct CoordinateBuf<E: Ellipsoid> {
     pub data: Vec<(f64, f64)>,
-    pub crs: C,
+    pub crs: Box<Crs>,
     pub ellipsoid: E,
 }
 

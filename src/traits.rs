@@ -45,19 +45,25 @@ pub trait Ellipsoid: Copy + Clone {
 }
 
 pub trait ToLonLat {
-    fn to_lon_lat<C: ToLonLat + FromLonLat, E: Ellipsoid>(data: CoordinateBuf<C, E>) -> LonLatBuf<E>;
+    fn to_lon_lat<E: Ellipsoid>(&self, data: CoordinateBuf<E>) -> LonLatBuf<E> where Self: Sized;
 }
 
 pub trait FromLonLat {
-    fn from_lon_lat<C: ToLonLat + FromLonLat, E: Ellipsoid>(data: LonLatBuf<E>) -> CoordinateBuf<C, E>;
+    fn from_lon_lat<E: Ellipsoid>(&self, data: LonLatBuf<E>) -> CoordinateBuf<E> where Self: Sized;
 }
 
 impl<T> Crs for T where T: ToLonLat + FromLonLat { }
 
 pub trait Crs: ToLonLat + FromLonLat {
     fn project_to<CA: Crs, CB: Crs, EA: Ellipsoid, EB: Ellipsoid>
-        (data: CoordinateBuf<CA, EA>, other_crs: &CB, other_ellipsoid: &EB) -> CoordinateBuf<CB, EB> {
-        let temp = ToLonLat::to_lon_lat::<CA, EA>(data);
-        FromLonLat::from_lon_lat::<CB, EB>(temp.project_to_ellipsoid(*other_ellipsoid))
+        (data: CoordinateBuf<EA>, other_crs: &CB, other_ellipsoid: &EB)
+         -> CoordinateBuf<EB>
+        where Self: Sized
+    {
+        // one virtual function call: lookup which implementation of .to_lon_lat() to use
+        // error: the `to_lon_lat` method cannot be invoked on a trait object
+        // ??? why ???
+        let temp: LonLatBuf<EA> = (*data.crs).to_lon_lat(data);
+        other_crs.from_lon_lat::<EB>(temp.project_to_ellipsoid(*other_ellipsoid))
     }
 }

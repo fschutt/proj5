@@ -1,4 +1,5 @@
 use traits::Ellipsoid;
+use traits::Crs;
 
 pub struct LonLatBuf<E: Ellipsoid> {
     pub data: Vec<(f64, f64)>,
