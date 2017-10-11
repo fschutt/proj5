@@ -1,23 +1,18 @@
-use traits::Ellipsoid;
-use traits::Crs;
+use ellipsoid::Ellipsoid;
 
-pub struct LonLatBuf<E: Ellipsoid> {
+pub struct LonLatBuf {
     pub data: Vec<(f64, f64)>,
-    pub ellipsoid: E,
+    pub ellipsoid: Ellipsoid,
 }
 
-impl<E: Ellipsoid> LonLatBuf<E> {
-    // Project data from Ellipsoid A to Ellipsoid B
-    pub fn project_to_ellipsoid<F: Ellipsoid>(self, ellipsoid: F) -> LonLatBuf<F> {
+impl LonLatBuf {
+    /// Reprojects from the current ellipsoid to the target ellipsoid by reprojecting
+    /// the points on the different spheroids. Does nothing if the ellipsoids are the same.
+    pub fn project_to_ellipsoid(&mut self, target_ellipsoid: Ellipsoid) {
         // TODO !!!
 
-        if !self.ellipsoid.compare(&ellipsoid) {
+        if self.ellipsoid != target_ellipsoid {
             panic!("Transforming between ellipsoids is currently not implemented!");
-        }
-        
-        LonLatBuf {
-            data: self.data,
-            ellipsoid: ellipsoid,
         }
     }
 }

@@ -6,24 +6,26 @@ use prelude::*;
 pub struct UTMSystem;
 
 impl ToLonLat for UTMSystem {
-    fn to_lon_lat<E: Ellipsoid>(&self, source: CoordinateBuf<E>) -> LonLatBuf<E>
+    fn to_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+                  -> LonLatBuf
     {
         // todo: reproject here
         LonLatBuf {
-            data: source.data,
-            ellipsoid: source.ellipsoid,
+            data: data,
+            ellipsoid: ellipsoid,
         }
     }
 }
 
 impl FromLonLat for UTMSystem {
-    fn from_lon_lat<E: Ellipsoid>(&self, source: LonLatBuf<E>) -> CoordinateBuf<E>
+    fn from_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+                    -> CoordinateBuf
     {
         // todo: reproject here
         CoordinateBuf {
-            data: source.data,
+            data: data,
             crs: Box::new(UTMSystem),
-            ellipsoid: source.ellipsoid,
+            ellipsoid: ellipsoid,
         }
     }
 }
