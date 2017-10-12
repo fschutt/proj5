@@ -83,7 +83,7 @@
 //! conversions. This is not realistically possible. Instead,
 //! what PROJ.5 does is the following conversion:
 //!
-//! ```
+//! ```ignore
 //! +-----------------+    +------------------+
 //! |(1)              |    |(2)               |
 //! |Source CRS       |    |Longitude / Latit.|
@@ -109,7 +109,7 @@
 //! In order to implement your own CRS, you have to implement the `ToLatLon` and `FromLatLon` traits.
 //! The required trait `Crs` is then automatically implemented for you.
 //!
-//! ```
+//! ```rust,ignore
 //! impl ToLatLon for MyCoordinateSystem {
 //!    fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
 //!               -> LonLatBuf
@@ -150,9 +150,9 @@ pub use coordinate_buf::CoordinateBuf;
 pub mod crs {
     pub use coordinate_systems::merc::MercatorSystem as MercatorSystem;
     pub use coordinate_systems::utm::UTMSystem as UTMSystem;
-    //! other coordinate systems go here
+    // other coordinate systems go here
 
-    //! utility functions, specific to certain coordinate systems
+    // utility functions, specific to certain coordinate systems
     pub mod utils {
         pub mod utm {
             pub use coordinate_systems::utm::*;
@@ -160,7 +160,7 @@ pub mod crs {
     }
 }
 
-//! prelude for easy importing
+// prelude for easy importing
 pub mod prelude {
     pub use traits::*;
     pub use lonlat_buf::LonLatBuf;
