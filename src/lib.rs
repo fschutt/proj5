@@ -5,7 +5,6 @@ mod coordinate_systems;
 mod coordinate_buf;
 mod traits;
 mod lonlat_buf;
-mod ellipsoids;
 mod ellipsoid;
 
 pub use traits::{
@@ -14,16 +13,22 @@ pub use traits::{
     Crs,
 };
 
-pub use ellipsoid::Ellipsoid;
+pub use ellipsoid::*;
 pub use lonlat_buf::LonLatBuf;
 pub use coordinate_buf::CoordinateBuf;
 
-pub use coordinate_systems::merc::MercatorSystem;
-pub use coordinate_systems::utm::UTMSystem;
-/* other coordinate systems go here */
+pub mod crs {
+    pub use coordinate_systems::merc::MercatorSystem as MercatorSystem;
+    pub use coordinate_systems::utm::UTMSystem as UTMSystem;
+    // other coordinate systems go here
 
-pub use ellipsoids::wgs84::WGS_84_ELLIPSOID;
-/* other ellipsoids go here */
+    // utility functions, specific to certain coordinate systems
+    pub mod utils {
+        pub mod utm {
+            pub use coordinate_systems::utm::*;
+        }
+    }
+}
 
 // prelude for easy importing
 pub mod prelude {
@@ -31,9 +36,4 @@ pub mod prelude {
     pub use lonlat_buf::LonLatBuf;
     pub use coordinate_buf::CoordinateBuf;
     pub use ellipsoid::Ellipsoid;
-}
-
-// test
-pub fn reproject_coordinate_buf() {
-    
 }
