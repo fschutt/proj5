@@ -150,7 +150,7 @@ pub fn footpoint_latitude(y: f64, ellipsoid: &Ellipsoid) -> f64 {
 
 impl ToLonLat for UTMSystem {
     #[allow(non_snake_case)]
-    fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+    fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, _strategy: &mut MultithreadingStrategy)
                   -> LonLatBuf
     {
         for &mut (ref mut x, ref mut y) in data.iter_mut() {
@@ -165,7 +165,7 @@ impl ToLonLat for UTMSystem {
             cur_x -= FALSE_EASTING;
             cur_x /= UTM_SCALE_FACTOR;
 
-            // lambda0 is in radians
+            // lambda0 is in radiansd
             let lambda0 = utm_central_meridian(self.utm_zone);
 
             // Get the value of phif, the footpoint latitude.
@@ -245,15 +245,14 @@ impl ToLonLat for UTMSystem {
         
         LonLatBuf {
             data: data,
-            ellipsoid: ellipsoid,
+            ellipsoid: *ellipsoid,
         }
     }
 }
 
-
 impl FromLonLat for UTMSystem {
     #[allow(non_snake_case)]
-    fn from_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+    fn from_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, _strategy: &mut MultithreadingStrategy)
                     -> CoordinateBuf
     {
         for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
@@ -324,7 +323,7 @@ impl FromLonLat for UTMSystem {
             crs: Box::new(UTMSystem {
                 utm_zone: self.utm_zone,
             }),
-            ellipsoid: ellipsoid,
+            ellipsoid: *ellipsoid,
         }
     }
 }

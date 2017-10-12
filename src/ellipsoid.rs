@@ -24,6 +24,7 @@ pub struct Ellipsoid {
 // Note: It doesn't really make sense to put ellipsoids in seperate files,
 // they are too simple. So we just put them here.
 
+/// The 24 standard ellipsoids
 pub const ELLIPSOIDS: [&'static Ellipsoid; 24] = [
     &MAUPERTUIS_1738_ELLIPSOID,
     &PLESSIS_1817_ELLIPSOID,

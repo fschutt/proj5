@@ -1,105 +1,16 @@
 //! Mercator projection
+//!
+//! Impelentation taken from:
+//! 
+//! http://wiki.openstreetmap.org/wiki/Mercator
+//!
+//! Copyright 2006 Christopher Schmidt
 
 use prelude::*;
 
 pub struct MercatorSystem;
 
-/*
-/// JS implementation of accurate Mercator projection, 
-/// to be used at larger scales
-/// Copyright 2006 Christopher Schmidt 
-/// see: http://wiki.openstreetmap.org/wiki/Mercator
-/// 
-
-var sm_a = 6378137.0;
-var sm_b = 6356752.314;
-
-/// Converts degrees to radians.
-function DegToRad(deg) { return (deg / 180.0 * pi) }
-
-/// Converts radians to degrees.
-function RadToDeg(rad) { return (rad / pi * 180.0) }
-
-/// Converts a longitude to meter using the mercator projection
-function ToMercatorX(lon) {
-return sm_a * DegToRad(lon);
-}
-
-/// Converts a longitude to meter using the mercator projection
-function FromMercatorX(x) {
-    return RadToDeg(x / sm_a);
-}
-
-/// Converts a latitude to meter using the mercator projection
-function ToMercatorY(lat) {
-
-    if (lat > 89.5) {
-        lat = 89.5;
-    }
-
-    if (lat < -89.5) {
-        lat = -89.5;
-    }
-
-    var temp = sm_b / sm_a;
-    var es = 1.0 - (temp * temp);
-    var eccent = Math.sqrt(es);
-    var phi = DegToRad(lat);
-    var sinphi = Math.sin(phi);
-    var con = eccent * sinphi;
-    var com = .5 * eccent;
-    con = Math.pow((1.0-con)/(1.0+con), com);
-    var ts = Math.tan(.5 * (Math.PI*0.5 - phi))/con;
-    var y = 0 - sm_a * Math.log(ts);
-
-    return y;
-}
-
-/// Converts a longitude to meter using the mercator projection
-function FromMercatorY(y) {
-
-var temp = sm_b / sm_a;
-var e = Math.sqrt(1.0 - (temp * temp));
-var lat = RadToDeg(PjPhi2(Math.exp( 0 - (y / sm_a)), e));
-
-return lat;
-}
-
-/// Taken from http://wiki.openstreetmap.org/wiki/Mercator - used in reverse mercator function
-function PjPhi2(ts, e) {
-
-    var N_ITER=15;
-    var HALFPI=Math.PI/2;
-    
-    var TOL=0.0000000001;
-    var eccnth, phi, con, dphi;
-    var i;
-    var eccnth = .5 * e;
-    phi = HALFPI - 2. * Math.atan (ts);
-    i = N_ITER;
-
-    do {
-        con = e * Math.sin (phi);
-        dphi = HALFPI - 2. * Math.atan (ts * Math.pow((1. - con) / (1. + con), eccnth)) - phi;
-        phi += dphi;
-        
-    } while ( Math.abs(dphi)>TOL && --i);
-
-    return phi;
-}
-
-/// Wrapper: calculates meter in mercator from a lon and lat pair
-function LatLonToMercatorXY(lat, lon) {
-    return [ToMercatorX(lon),ToMercatorY(lat)];
-}
-
-/// Wrapper: calculates lat and lon using the mercator projection from an x and y pair
-function MercatorXYToLatLon(x, y) {
-    return [FromMercatorX(x), FromMercatorY(y)];
-}
-
- */
-
+#[inline(always)]
 fn pj_phi2(ts: f64, e: f64)
            -> f64
 {    
@@ -123,12 +34,13 @@ fn pj_phi2(ts: f64, e: f64)
     return phi;
 }
 
-fn lat_to_mercator_y(mut lat: f64, ellipsoid: &Ellipsoid) -> f64 {
+/// `temp = ellipsoid.b / ellipsoid.a`
+#[inline(always)]
+fn lat_to_mercator_y(mut lat: f64, ellipsoid_a: f64, temp: f64) -> f64 {
 
     if lat > 89.5  { lat = 89.5; }
     if lat < -89.5 { lat = -89.5; }
 
-    let temp = ellipsoid.b / ellipsoid.a;
     let es = 1.0 - (temp * temp);
     let eccent = es.sqrt();
     let phi = lat.to_radians();
@@ -137,51 +49,99 @@ fn lat_to_mercator_y(mut lat: f64, ellipsoid: &Ellipsoid) -> f64 {
     let com = 0.5 * eccent;
     let con = (1.0 - con) / (1.0 + con).powf(com);
     let ts = (0.5 * (::std::f64::consts::PI * 0.5 - phi)).tan() / con;
-    let y = 0.0 - ellipsoid.a * ts.ln();
+    let y = 0.0 - ellipsoid_a * ts.ln();
 
     return y;
 }
 
+#[inline(always)]
+fn merc_x_to_lon(x: f64, ellipsoid_a: f64)
+                 -> f64
+{
+    (x / ellipsoid_a).to_degrees()
+}
+
+/// `temp = ellipsoid.a / ellipsoid.b`
+/// `e = (1.0 - (temp * temp)).sqrt()`
+#[inline(always)]
+fn merc_y_to_lat(y: f64, ellipsoid_a: f64, e: f64)
+                 -> f64
+{
+    pj_phi2((0.0 - (y / ellipsoid_a)).exp(), e).to_degrees()
+}
+
 impl ToLonLat for MercatorSystem {
-    fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+    fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                   -> LonLatBuf
     {
-        for &mut (ref mut x, ref mut y) in data.iter_mut() {
-            let lon = (*x / ellipsoid.a).to_degrees();
-            let lat = {
-                let temp = ellipsoid.b / ellipsoid.a;
-                let e = (1.0 - (temp * temp)).sqrt();
-                pj_phi2((0.0 - (*y / ellipsoid.a)).exp(), e).to_degrees()
-            };
+        let temp = ellipsoid.b / ellipsoid.a;
+        let e = (1.0 - (temp * temp)).sqrt();
+        
+        match *strategy {
+            SingleCore => {
+                for &mut (ref mut x, ref mut y) in data.iter_mut() {
+                    *x = merc_x_to_lon(*x, ellipsoid.a);
+                    *y = merc_y_to_lat(*y, ellipsoid.b, e);
+                }
+            },
 
-            *x = lon;
-            *y = lat;
+            MultiCore(ref mut thread_pool) => {
+                thread_pool.scoped(|scoped| {
+                    // Create references to each element in the vector ...
+                    for &mut (mut x, mut y) in &mut data {
+                        // ... and add 1 to it in a seperate thread
+                        scoped.execute(move || {
+                            x = merc_x_to_lon(x, ellipsoid.a);
+                            y = merc_y_to_lat(y, ellipsoid.b, e);
+                        });
+                    }
+                });
+            },
+            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
         }
-
+        
         LonLatBuf {
             data: data,
-            ellipsoid: ellipsoid,
+            ellipsoid: *ellipsoid,
         }
     }
 }
 
 impl FromLonLat for MercatorSystem {
 
-    fn from_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: Ellipsoid)
+    fn from_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                     -> CoordinateBuf
-    {
-        for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
-            let x = ellipsoid.a * lon.to_radians();
-            let y = lat_to_mercator_y(*lat, &ellipsoid);
-            
-            *lon = x;
-            *lat = y;
+    {        
+        let temp = ellipsoid.b / ellipsoid.a;
+
+        // TODO: copy-pasted! bad!
+        match *strategy {
+            SingleCore => {
+                for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
+                    *lon = ellipsoid.a * lon.to_radians();
+                    *lat = lat_to_mercator_y(*lat, ellipsoid.a, temp);
+                }
+            },
+
+            MultiCore(ref mut thread_pool) => {
+                thread_pool.scoped(|scoped| {
+                    // Create references to each element in the vector ...
+                    for &mut (ref mut lon, ref mut lat) in &mut data {
+                        // ... and add 1 to it in a seperate thread
+                        scoped.execute(move || {
+                            *lon = ellipsoid.a * lon.to_radians();
+                            *lat = lat_to_mercator_y(*lat, ellipsoid.a, temp);
+                        });
+                    }
+                });
+            },
+            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
         }
 
         CoordinateBuf {
             data: data,
             crs: Box::new(MercatorSystem),
-            ellipsoid: ellipsoid,
+            ellipsoid: *ellipsoid,
         }
     }
 }

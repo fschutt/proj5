@@ -2,5 +2,11 @@
 name = "proj5"
 version = "0.1.0"
 authors = ["Felix Schütt <felix.schuett@maps4print.com>"]
+repository = "https://github.com/fschutt/proj5"
+homepage = "https://github.com/fschutt/proj5"
+license = "MIT"
+readme = "README.md"
+description = "Pure Rust, type-safe alternative to PROJ.4"
 
 [dependencies]
+scoped_threadpool = "0.1.8"

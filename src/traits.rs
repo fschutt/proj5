@@ -17,28 +17,18 @@ use prelude::*;
 // project in-and-out. A good coordinate system would be (latitude, longitude). However,
 // you'd also need to make sure that the ellipsoids are the same:
 
-pub trait ToLonLat {
-    fn to_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: Ellipsoid) -> LonLatBuf;
+pub trait ToLonLat 
+{
+    fn to_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
+                  -> LonLatBuf;
 }
 
-pub trait FromLonLat {
-    fn from_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: Ellipsoid) -> CoordinateBuf;
+pub trait FromLonLat 
+{
+    fn from_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
+                    -> CoordinateBuf;
 }
+
+pub trait Crs: ToLonLat + FromLonLat { }
 
 impl<T> Crs for T where T: ToLonLat + FromLonLat { }
-
-pub trait Crs: ToLonLat + FromLonLat
-{
-    fn project_to(source: CoordinateBuf, target: &mut CoordinateBuf)
-        where Self: Sized
-    {
-        let source_ellipsoid = source.ellipsoid;
-        let mut temp = source.crs.to_lon_lat(source.data, source.ellipsoid);
-
-        if source_ellipsoid != target.ellipsoid {
-            temp.project_to_ellipsoid(target.ellipsoid);
-        }
-
-        target.crs.from_lon_lat(temp.data, temp.ellipsoid);
-    }
-}
