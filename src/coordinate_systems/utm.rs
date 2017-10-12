@@ -243,7 +243,6 @@ impl ToLonLat for UTMSystem {
             *y = lat.to_degrees();         
         }
         
-        // todo: reproject here
         LonLatBuf {
             data: data,
             ellipsoid: ellipsoid,
