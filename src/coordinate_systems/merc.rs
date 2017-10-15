@@ -22,13 +22,14 @@ fn pj_phi2(ts: f64, e: f64)
 
     let mut dphi;
     let mut con;
-    
+    let mut iteration_cnt = 15;
+
     loop {
         con = e * phi.sin();
         dphi = HALFPI - 2.0 * (ts * ((1.0 - con) / (1.0 + con)).powf(eccnth)).atan() - phi;
         phi += dphi; 
         
-        if dphi.abs() > TOL { break; }
+        if dphi.abs() > TOL && (iteration_cnt - 1) > 0 { break; } else { iteration_cnt -= 1; }
     }
     
     return phi;
@@ -87,12 +88,10 @@ impl ToLonLat for MercatorSystem {
 
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
-                    // Create references to each element in the vector ...
-                    for &mut (mut x, mut y) in &mut data {
-                        // ... and add 1 to it in a seperate thread
+                    for &mut (ref mut x, ref mut y) in data.iter_mut() {
                         scoped.execute(move || {
-                            x = merc_x_to_lon(x, ellipsoid.a);
-                            y = merc_y_to_lat(y, ellipsoid.b, e);
+                            *x = merc_x_to_lon(*x, ellipsoid.a);
+                            *y = merc_y_to_lat(*y, ellipsoid.b, e);
                         });
                     }
                 });

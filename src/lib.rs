@@ -155,7 +155,7 @@ pub mod crs {
     // utility functions, specific to certain coordinate systems
     pub mod utils {
         pub mod utm {
-            pub use coordinate_systems::utm::*;
+            pub use coordinate_systems::utm::utils::*;
         }
     }
 }
