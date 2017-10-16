@@ -12,14 +12,13 @@
 //! I've written this library because I saw various GIS / projection libraries
 //! floating around on github, but no centralized Rust-projection library.
 //!
-//! #### This library is a work-in-progress and is by no means battle-tested.
-//! #### It's just a collection of projection formulas from different authors,
-//! #### ported to Rust with a type-safe interface.
+//! **Note:** This library is a work-in-progress and is by no means battle-tested.
+//! It's just a collection of projection formulas from different authors,
+//! ported to Rust with a type-safe interface.
 //!
-//! #### Important: Currently, there is no reprojection between ellipsoids yet.
+//! **Important:** Currently, there is no reprojection between ellipsoids yet.
 //!
-//! #### Also important: Coordinates are always horizonal, then vertical.
-//! #### LonLat / xy / EastNorth instead of LatLon!
+//! **Also important:** Coordinates are always horizonal, then vertical. (LonLat instead of LatLon)
 //!
 //! PROJ.5 defines the 24 standard ellipsoids (such as WGS84, Bessel, etc.),
 //! but you can make your own ellipsoids.
