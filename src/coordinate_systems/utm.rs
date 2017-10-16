@@ -3,7 +3,7 @@
 use prelude::*;
 
 /// UTM System
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct UTMSystem {
     pub utm_zone: u8,
 }
@@ -12,10 +12,9 @@ pub mod utils {
 
     use prelude::*;
 
-    
-    const UTM_SCALE_FACTOR: f64 = 0.9996;
-    const FALSE_EASTING: f64 = 500000.0;
-    const FALSE_NORTHING: f64 = 10000000.0;
+    pub const UTM_SCALE_FACTOR: f64 = 0.9996;
+    pub const FALSE_EASTING: f64 = 500000.0;
+    pub const FALSE_NORTHING: f64 = 10000000.0;
     
     /// Calculates the UTM zone this longitude falls in
     /// Handles exceptions for Norway / Svalbard

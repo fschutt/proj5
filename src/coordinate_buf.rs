@@ -8,8 +8,10 @@ pub enum CoordinateSource {
     LonLatBuf(Box<LonLatBuf>),
 }
 
-impl CoordinateSource {
-    pub fn project(self, target: &mut CoordinateBuf, strategy: &mut MultithreadingStrategy)
+impl CoordinateSource
+{    
+    /// Project coordinates from `self` to `target`.
+    pub fn project(self, target: &mut CoordinateSource, strategy: &mut MultithreadingStrategy)
     {
         let (mut temp, source_ellipsoid) = match self {
             CoordinateSource::CoordinateBuf(buf) => {
@@ -24,12 +26,45 @@ impl CoordinateSource {
             },
         };
 
-        if source_ellipsoid != target.ellipsoid {
-            temp.project_to_ellipsoid(target.ellipsoid);
-        }
+        let result = match *target {
+            CoordinateSource::CoordinateBuf(ref mut buf) => {
+                if source_ellipsoid != buf.ellipsoid {
+                    temp.project_to_ellipsoid(buf.ellipsoid);
+                }
+                
+                CoordinateSource::CoordinateBuf(
+                    Box::new(buf.crs.from_lon_lat(temp.data, &temp.ellipsoid, strategy))
+                )
+            },
+            CoordinateSource::LonLatBuf(ref mut buf) => {
+                if source_ellipsoid != buf.ellipsoid {
+                    temp.project_to_ellipsoid(buf.ellipsoid);
+                }
+                CoordinateSource::LonLatBuf(Box::new(temp))
+            },
+        };
 
-        let result = target.crs.from_lon_lat(temp.data, &temp.ellipsoid, strategy);
         *target = result;
+    }
+
+    /// Get the data (for easier access)
+    pub fn get_data_ref(&self)
+                    -> &Vec<(f64, f64)>
+    {
+        match *self {
+            CoordinateSource::CoordinateBuf(ref buf) => &buf.data,
+            CoordinateSource::LonLatBuf(ref buf) => &buf.data,
+        }
+    }
+
+    /// Get the ellipsoid (by value)
+    pub fn get_ellipsoid(&self)
+                         -> Ellipsoid
+    {
+        match *self {
+            CoordinateSource::CoordinateBuf(ref buf) => buf.ellipsoid,
+            CoordinateSource::LonLatBuf(ref buf) => buf.ellipsoid,
+        }
     }
 }
 

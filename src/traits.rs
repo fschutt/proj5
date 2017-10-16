@@ -17,18 +17,24 @@ use prelude::*;
 // project in-and-out. A good coordinate system would be (latitude, longitude). However,
 // you'd also need to make sure that the ellipsoids are the same:
 
-pub trait ToLonLat 
+pub trait ToLonLat
 {
     fn to_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                   -> LonLatBuf;
 }
 
-pub trait FromLonLat 
+pub trait FromLonLat
 {
     fn from_lon_lat(&self, data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                     -> CoordinateBuf;
 }
 
-pub trait Crs: ToLonLat + FromLonLat { }
+pub trait Crs: ToLonLat + FromLonLat + ::std::fmt::Debug {
+    fn clone(&self) -> Box<Crs>;
+}
 
-impl<T> Crs for T where T: ToLonLat + FromLonLat { }
+impl<T> Crs for T where T: ToLonLat + FromLonLat + ::std::fmt::Debug + Clone + 'static {
+    fn clone(&self) -> Box<Crs> {
+        Box::new((*self).clone())
+    }
+}

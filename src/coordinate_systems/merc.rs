@@ -8,6 +8,7 @@
 
 use prelude::*;
 
+#[derive(Debug, Copy, Clone)]
 pub struct MercatorSystem;
 
 #[inline(always)]
