@@ -20,16 +20,18 @@ fn main() {
         }
     ));
 
-    let mut target_coordinates = CoordinateBuf {
-        data: Vec::new(),
-        crs: Box::new(MercatorSystem),
-        ellipsoid: ellipsoid,
-    };
+    let mut target_coordinates = CoordinateSource::CoordinateBuf(Box::new(
+        CoordinateBuf {
+            data: Vec::new(),
+            crs: Box::new(MercatorSystem),
+            ellipsoid: ellipsoid,        
+        }
+    ));
 
     let mut strategy = MultithreadingStrategy::SingleCore;
     source_coordinates.project(&mut target_coordinates, &mut strategy);
 
-    println!("first batch of coordinates: {:#?}", target_coordinates.data);    
+    println!("first batch of coordinates: {:#?}", target_coordinates.get_data_ref());    
 
     // -- multithreaded
     
@@ -47,5 +49,5 @@ fn main() {
     // reuse the original coordinate buf
     lon_lat_coordinates.project(&mut target_coordinates, &mut strategy);
 
-    println!("second batch of coordinates: {:#?}", target_coordinates.data);
+    println!("second batch of coordinates: {:#?}", target_coordinates.get_data_ref());
 }
