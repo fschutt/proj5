@@ -1,5 +1,5 @@
 //! # proj5
-//! 
+//!
 //! PROJ.5 is a Rust-based alternative to the established coordinate projection
 //! library PROJ.4 (which is written in C). PROJ.5 aims to make coordinate transformations
 //! more type-safe (instead of relying on projection strings) and multi-threaded
@@ -7,32 +7,32 @@
 //!
 //! While it is a large undertaking rewriting such a well-established library,
 //! the speed benefits from multithreading, vectorization and batched transformation
-//! are reason enough to at least try. 
-//! 
+//! are reason enough to at least try.
+//!
 //! I've written this library because I saw various GIS / projection libraries
-//! floating around on github, but no centralized Rust-projection library. 
-//! 
+//! floating around on github, but no centralized Rust-projection library.
+//!
 //! #### This library is a work-in-progress and is by no means battle-tested.
 //! #### It's just a collection of projection formulas from different authors,
 //! #### ported to Rust with a type-safe interface.
-//! 
+//!
 //! #### Important: Currently, there is no reprojection between ellipsoids yet.
-//! 
+//!
 //! #### Also important: Coordinates are always horizonal, then vertical.
 //! #### LonLat / xy / EastNorth instead of LatLon!
-//! 
+//!
 //! PROJ.5 defines the 24 standard ellipsoids (such as WGS84, Bessel, etc.),
 //! but you can make your own ellipsoids.
-//! 
+//!
 //! ## Usage
-//! 
+//!
 //! ```rust
 //! extern crate proj5;
-//! 
+//!
 //! use proj5::prelude::*;
-//! 
+//!
 //! fn main() {
-//! 
+//!
 //!     //! warning: PROJ.5 can currently not reproject between different ellipsoids!
 //!     //! using different ellipsoids will panic!
 //!     let ellipsoid = WGS_1984_ELLIPSOID;
@@ -46,17 +46,19 @@
 //!             ellipsoid: ellipsoid,
 //!         }
 //!     ));
-//! 
-//!     let mut target_coordinates = CoordinateBuf {
-//!         data: Vec::new(),
-//!         crs: Box::new(MercatorSystem),
-//!         ellipsoid: ellipsoid,
-//!     };
+//!
+//!     let mut target_coordinates = CoordinateSource::CoordinateBuf(Box::new(
+//!         CoordinateBuf {
+//!             data: Vec::new(),
+//!             crs: Box::new(MercatorSystem),
+//!             ellipsoid: ellipsoid,
+//!         }
+//!     ));
 //!
 //!     let mut strategy = MultithreadingStrategy::SingleCore;
 //!     source_coordinates.project(&mut target_coordinates, &mut strategy);
 //!
-//!     println!("first batch of coordinates: {:#?}", target_coordinates.data);
+//!     println!("first batch of coordinates: {:#?}", target_coordinates.get_data_ref());
 //! }
 //!
 //! ```
