@@ -1,5 +1,15 @@
 use prelude::*;
 
+/// A buffer of coordinates. Units are arbitrary.
+pub struct CoordinateBuf {
+    /// The actual coordinates, in (x, y) format
+    pub data: Vec<(f64, f64)>,
+    /// The coordinate reference system
+    pub crs: Box<Crs>,
+    /// The ellipsoid that is used in this CRS.
+    pub ellipsoid: Ellipsoid,
+}
+
 /// Source of the given coordinates
 /// This is needed so we can reproject LatLon directly to the target CRS
 /// without any intermediate steps.
@@ -47,13 +57,33 @@ impl CoordinateSource
         *target = result;
     }
 
-    /// Get the data (for easier access)
+    /// Consume the buffer and extract the data
+    pub fn into_data(self)
+                    -> Vec<(f64, f64)>
+    {
+        match self {
+            CoordinateSource::CoordinateBuf(buf) => buf.data,
+            CoordinateSource::LonLatBuf(buf) => buf.data,
+        }
+    }
+
+    /// Get the data as a reference
     pub fn get_data_ref(&self)
                     -> &Vec<(f64, f64)>
     {
         match *self {
             CoordinateSource::CoordinateBuf(ref buf) => &buf.data,
             CoordinateSource::LonLatBuf(ref buf) => &buf.data,
+        }
+    }
+
+    /// Get the data as a mutable reference
+    pub fn get_data_ref_mut(&mut self)
+                    -> &mut Vec<(f64, f64)>
+    {
+        match *self {
+            CoordinateSource::CoordinateBuf(ref mut buf) => &mut buf.data,
+            CoordinateSource::LonLatBuf(ref mut buf) => &mut buf.data,
         }
     }
 
@@ -66,15 +96,5 @@ impl CoordinateSource
             CoordinateSource::LonLatBuf(ref buf) => buf.ellipsoid,
         }
     }
-}
-
-/// A buffer of coordinates. Units are arbitrary.
-pub struct CoordinateBuf {
-    /// The actual coordinates, in (x, y) format
-    pub data: Vec<(f64, f64)>,
-    /// The coordinate reference system
-    pub crs: Box<Crs>,
-    /// The ellipsoid that is used in this CRS.
-    pub ellipsoid: Ellipsoid,
 }
 
