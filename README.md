@@ -1,7 +1,9 @@
- # proj5
-
  [![Build Status](https://travis-ci.org/fschutt/proj5.svg?branch=master)](https://travis-ci.org/fschutt/proj5)
 
+ # proj5
+
+ [Crates.io](https://crates.io/crates/proj5) | [Documentation](https://docs.rs/proj5)
+ 
  PROJ.5 is a Rust-based alternative to the established coordinate projection
  library PROJ.4 (which is written in C). PROJ.5 aims to make coordinate transformations
  more type-safe (instead of relying on projection strings) and multi-threaded
