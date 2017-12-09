@@ -15,7 +15,7 @@ pub mod utils {
     pub const UTM_SCALE_FACTOR: f64 = 0.9996;
     pub const FALSE_EASTING: f64 = 500000.0;
     pub const FALSE_NORTHING: f64 = 10000000.0;
-    
+
     /// Calculates the UTM zone this longitude falls in
     /// Handles exceptions for Norway / Svalbard
     /// For a visual representation: https://upload.wikimedia.org/wikipedia/commons/a/a5/UTM-Zone.svg
@@ -43,7 +43,7 @@ pub mod utils {
             if lon > 30.0 && lon < 33.0       { zone -= 1.0; }
             if lon > 33.0 && lon < 36.0       { zone += 1.0; }
         }
-        
+
         return zone as u8;
     }
 
@@ -153,24 +153,21 @@ pub mod utils {
     /// Returns: (lon, lat)
     #[inline]
     #[allow(non_snake_case)]
-    pub fn utm_xy_to_lonlat(x: f64, y: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
+    pub fn utm_xy_to_lonlat(mut x: f64, mut y: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
                             -> (f64, f64)
-    {   
-        let mut cur_x = x;
-        let mut cur_y = y;
-        
+    {
         // If in southern hemisphere, adjust y accordingly to be negative
-        cur_y -= FALSE_NORTHING;
-        cur_y /= UTM_SCALE_FACTOR;
+        y -= FALSE_NORTHING;
+        y /= UTM_SCALE_FACTOR;
 
-        cur_x -= FALSE_EASTING;
-        cur_x /= UTM_SCALE_FACTOR;
+        x -= FALSE_EASTING;
+        x /= UTM_SCALE_FACTOR;
 
         // lambda0 is in radiansd
         let lambda0 = utm_central_meridian(utm_zone);
 
         // Get the value of phif, the footpoint latitude.
-        let phif = footpoint_latitude(cur_y, &ellipsoid);
+        let phif = footpoint_latitude(y, &ellipsoid);
 
         // Precalculate ep2
         let ep2 = (ellipsoid.a.powi(2) - ellipsoid.b.powi(2)) / ellipsoid.b.powi(2);
@@ -233,11 +230,11 @@ pub mod utils {
         let x8poly = 1385.0 + 3633.0 * tf2 + 4095.0 * tf4 + 1575.0 * (tf4 * tf2);
 
         // Calculate latitude
-        let lat = phif + x2frac * x2poly * (cur_x * cur_x) + x4frac * x4poly * x.powi(4) +
+        let lat = phif + x2frac * x2poly * (x * x) + x4frac * x4poly * x.powi(4) +
             x6frac * x6poly * x.powi(6) + x8frac * x8poly * x.powi(8);
 
         // Calculate longitude
-        let lon = lambda0 + x1frac * cur_x + x3frac * x3poly * x.powi(3) + x5frac * x5poly * x.powi(5) +
+        let lon = lambda0 + x1frac * x + x3frac * x3poly * x.powi(3) + x5frac * x5poly * x.powi(5) +
             x7frac * x7poly * x.powi(7);
 
         (lon.to_degrees(), lat.to_degrees())
@@ -247,11 +244,11 @@ pub mod utils {
     /// Returns: (x, y)
     #[inline]
     #[allow(non_snake_case)]
-    pub fn lonlat_to_utm_xy(lon: f64, lat: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
+    pub fn lonlat_to_utm_xy(mut lon: f64, mut lat: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
                             -> (f64, f64)
-    {        
-        let cur_lon = lon.to_radians();
-        let cur_lat = lat.to_radians();
+    {
+        lon = lon.to_radians();
+        lat = lat.to_radians();
 
         let lambda0 = utm_central_meridian(utm_zone);
 
@@ -269,7 +266,7 @@ pub mod utils {
         let t2 = t * t;
 
         // Precalculate l
-        let l = cur_lon - lambda0;
+        let l = lon - lambda0;
 
         // Precalculate coefficients for l**n in the equations below
         // so a normal human being can read the expressions for easting
@@ -293,7 +290,7 @@ pub mod utils {
             (N / 5040.0 * lat.cos().powi(7) * l7coef * l.powi(7));
 
         // Calculate northing
-        let mut y = arc_length_of_meridian(cur_lat, &ellipsoid) +
+        let mut y = arc_length_of_meridian(lat, &ellipsoid) +
             (t / 2.0 * N * lat.cos().powi(2) * l.powi(2)) +
             (t / 24.0 * N * lat.cos().powi(4) * l4coef * l.powi(4)) +
             (t / 720.0 * N * lat.cos().powi(6) * l6coef * l.powi(6)) +
@@ -307,7 +304,7 @@ pub mod utils {
             y = y + FALSE_NORTHING;
         }
 
-        (x, y)        
+        (x, y)
     }
 }
 
@@ -316,12 +313,12 @@ impl ToLonLat for UTMSystem {
                   -> LonLatBuf
     {
         let zone = self.utm_zone;
-        
+
         match *strategy {
             SingleCore => {
                 for &mut (ref mut x, ref mut y) in data.iter_mut() {
                     let (lon, lat) = utils::utm_xy_to_lonlat(*x, *y, ellipsoid, zone);
-                    *x = lon; *y = lat;  
+                    *x = lon; *y = lat;
                 }
             },
             MultiCore(ref mut thread_pool) => {
@@ -334,9 +331,9 @@ impl ToLonLat for UTMSystem {
                     }
                 });
             },
-            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
+            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
-        
+
         LonLatBuf {
             data: data,
             ellipsoid: *ellipsoid,
@@ -349,12 +346,12 @@ impl FromLonLat for UTMSystem {
                     -> CoordinateBuf
     {
         let zone = self.utm_zone;
-        
+
         match *strategy {
             SingleCore => {
                 for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
                     let (x, y) = utils::lonlat_to_utm_xy(*lon, *lat, ellipsoid, zone);
-                    *lon = x; *lat = y;  
+                    *lon = x; *lat = y;
                 }
             },
             MultiCore(ref mut thread_pool) => {
@@ -367,9 +364,9 @@ impl FromLonLat for UTMSystem {
                     }
                 });
             },
-            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
+            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
-                
+
         CoordinateBuf {
             data: data,
             crs: Box::new(UTMSystem {
