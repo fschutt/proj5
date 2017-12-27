@@ -127,8 +127,19 @@
 //! This way, every coordinate system can talk to every other coordinate system.
 //!
 
+#![cfg(target_arch = "wasm32")]
+#![feature(alloc,lang_items)]
+
+#![cfg(target_arch = "wasm32")]
+#![lang(panic_fmt)]
+
+#![cfg_attr(target_arch = "wasm32", no_std)]
+
 #[cfg(not(target_arch = "wasm32"))]
 extern crate scoped_threadpool;
+
+#[cfg(target_arch = "wasm32")]
+extern crate alloc;
 
 mod coordinate_systems;
 mod coordinate_buf;

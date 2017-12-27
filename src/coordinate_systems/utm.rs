@@ -2,6 +2,11 @@
 
 use prelude::*;
 
+#[cfg(target_arch = "wasm32")]
+use alloc::Vec;
+#[cfg(target_arch = "wasm32")]
+use alloc::boxed::Box;
+
 /// UTM System
 #[derive(Debug, Copy, Clone)]
 pub struct UTMSystem {

@@ -1,5 +1,8 @@
 use ellipsoid::Ellipsoid;
 
+#[cfg(target_arch = "wasm32")]
+use alloc::Vec;
+
 /// A special version of a CoordinateBuf
 /// Every CRS that implements the `Crs` trait can project in and out of a `LonLatBuf`
 #[repr(C)]
@@ -19,7 +22,7 @@ impl LonLatBuf {
         // TODO !!!
 
         if self.ellipsoid != target_ellipsoid {
-            panic!("Transforming between ellipsoids is currently not implemented!");
+            // panic!("Transforming between ellipsoids is currently not implemented!");
         }
     }
 }

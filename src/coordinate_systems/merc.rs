@@ -11,11 +11,21 @@ use prelude::*;
 #[derive(Debug, Copy, Clone)]
 pub struct MercatorSystem;
 
+#[cfg(target_arch = "wasm32")]
+use core::f64::consts::PI;
+#[cfg(not(target_arch = "wasm32"))]
+use std::f64::consts::PI;
+
+#[cfg(target_arch = "wasm32")]
+use alloc::Vec;
+#[cfg(target_arch = "wasm32")]
+use alloc::boxed::Box;
+
 #[inline(always)]
 fn pj_phi2(ts: f64, e: f64)
            -> f64
 {    
-    const HALFPI: f64 = ::std::f64::consts::PI / 2.0;
+    const HALFPI: f64 = PI / 2.0;
     const TOL: f64 = 0.0000000001;
     
     let eccnth = 0.5 * e;
@@ -50,7 +60,7 @@ fn lat_to_mercator_y(mut lat: f64, ellipsoid_a: f64, temp: f64) -> f64 {
     let con = eccent * sinphi;
     let com = 0.5 * eccent;
     let con = (1.0 - con) / (1.0 + con).powf(com);
-    let ts = (0.5 * (::std::f64::consts::PI * 0.5 - phi)).tan() / con;
+    let ts = (0.5 * (PI * 0.5 - phi)).tan() / con;
     let y = 0.0 - ellipsoid_a * ts.ln();
 
     return y;
