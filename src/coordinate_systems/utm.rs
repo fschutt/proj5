@@ -321,6 +321,7 @@ impl ToLonLat for UTMSystem {
                     *x = lon; *y = lat;
                 }
             },
+            #[cfg(not(target_arch = "wasm32"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut x, ref mut y) in data.iter_mut() {
@@ -331,6 +332,7 @@ impl ToLonLat for UTMSystem {
                     }
                 });
             },
+            #[cfg(not(target_arch = "wasm32"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 
@@ -354,6 +356,7 @@ impl FromLonLat for UTMSystem {
                     *lon = x; *lat = y;
                 }
             },
+            #[cfg(not(target_arch = "wasm32"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
@@ -364,6 +367,7 @@ impl FromLonLat for UTMSystem {
                     }
                 });
             },
+            #[cfg(not(target_arch = "wasm32"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 

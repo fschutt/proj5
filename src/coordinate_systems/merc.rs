@@ -86,7 +86,7 @@ impl ToLonLat for MercatorSystem {
                     *y = merc_y_to_lat(*y, ellipsoid.b, e);
                 }
             },
-
+            #[cfg(not(target_arch = "wasm32"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut x, ref mut y) in data.iter_mut() {
@@ -97,6 +97,7 @@ impl ToLonLat for MercatorSystem {
                     }
                 });
             },
+            #[cfg(not(target_arch = "wasm32"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
         }
         
@@ -122,7 +123,7 @@ impl FromLonLat for MercatorSystem {
                     *lat = lat_to_mercator_y(*lat, ellipsoid.a, temp);
                 }
             },
-
+            #[cfg(not(target_arch = "wasm32"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     // Create references to each element in the vector ...
@@ -135,6 +136,7 @@ impl FromLonLat for MercatorSystem {
                     }
                 });
             },
+            #[cfg(not(target_arch = "wasm32"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),          
         }
 

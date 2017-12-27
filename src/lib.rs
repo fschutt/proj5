@@ -127,6 +127,7 @@
 //! This way, every coordinate system can talk to every other coordinate system.
 //!
 
+#[cfg(not(target_arch = "wasm32"))]
 extern crate scoped_threadpool;
 
 mod coordinate_systems;
@@ -142,7 +143,9 @@ pub use traits::{
     Crs,
 };
 
+#[cfg(not(target_arch = "wasm32"))]
 pub use scoped_threadpool::Pool as ThreadPool;
+
 pub use multithreading::MultithreadingStrategy;
 pub use ellipsoid::*;
 pub use lonlat_buf::LonLatBuf;
@@ -168,6 +171,7 @@ pub mod prelude {
     pub use coordinate_buf::CoordinateBuf;
     pub use ellipsoid::*;
     pub use crs::*;
+    #[cfg(not(target_arch = "wasm32"))]
     pub use ThreadPool;
     pub use multithreading::MultithreadingStrategy;
     pub use multithreading::MultithreadingStrategy::*;

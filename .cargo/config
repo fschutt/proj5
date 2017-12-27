@@ -1,0 +1,4 @@
+[target.wasm32-unknown-unknown]
+rustflags = [
+    "-Clink-args=-s EXPORTED_FUNCTIONS=['_project'] -s ASSERTIONS=1",
+]

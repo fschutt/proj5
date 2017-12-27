@@ -2,6 +2,7 @@
 
 /// Ellipsoid struct, to be instantiated with known values
 #[derive(Debug, Copy, Clone, PartialEq)]
+#[repr(C)]
 pub struct Ellipsoid {
     /// Semi-major axis A in meter
     pub a: f64,

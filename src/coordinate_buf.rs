@@ -1,6 +1,7 @@
 use prelude::*;
 
 /// A buffer of coordinates. Units are arbitrary.
+#[repr(C)]
 pub struct CoordinateBuf {
     /// The actual coordinates, in (x, y) format
     pub data: Vec<(f64, f64)>,
@@ -13,6 +14,7 @@ pub struct CoordinateBuf {
 /// Source of the given coordinates
 /// This is needed so we can reproject LatLon directly to the target CRS
 /// without any intermediate steps.
+#[repr(C)]
 pub enum CoordinateSource {
     CoordinateBuf(Box<CoordinateBuf>),
     LonLatBuf(Box<LonLatBuf>),
@@ -21,13 +23,13 @@ pub enum CoordinateSource {
 impl CoordinateSource
 {    
     /// Project coordinates from `self` to `target`.
+    #[no_mangle]
     pub fn project(self, target: &mut CoordinateSource, strategy: &mut MultithreadingStrategy)
     {
         let (mut temp, source_ellipsoid) = match self {
             CoordinateSource::CoordinateBuf(buf) => {
                 let buf = *buf;
-                (buf.crs.to_lon_lat(buf.data, &buf.ellipsoid, strategy),
-                 buf.ellipsoid)
+                (buf.crs.to_lon_lat(buf.data, &buf.ellipsoid, strategy), buf.ellipsoid)
             },
             CoordinateSource::LonLatBuf(buf) => {
                 let ellipsoid = buf.ellipsoid;
