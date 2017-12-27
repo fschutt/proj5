@@ -16,6 +16,8 @@ pub struct UTMSystem {
 pub mod utils {
 
     use prelude::*;
+    #[cfg(target_arch = "wasm32")]
+    use core::num::Float;
 
     pub const UTM_SCALE_FACTOR: f64 = 0.9996;
     pub const FALSE_EASTING: f64 = 500000.0;
@@ -31,8 +33,9 @@ pub mod utils {
     /// Returns: UTM Zone (0 to 60)
     ///
     #[allow(non_snake_case)]
-    pub fn get_utm_zone(lon: f64, lat: f64) -> u8 {
-
+    pub fn get_utm_zone(lon: f64, lat: f64) 
+    -> u8 
+    {
         let mut zone = ((lon + 180.0) / 6.0).floor() + 1.0;
 
         if lat > 56.0 && lat < 64.0 {
@@ -67,7 +70,11 @@ pub mod utils {
     /// The ellipsoidal distance of the point from the equator, in meters.
     ///
     #[allow(non_snake_case)]
-    pub fn arc_length_of_meridian(lat: f64, ellipsoid: &Ellipsoid) -> f64 {
+    pub fn arc_length_of_meridian(lat: f64, ellipsoid: &Ellipsoid) 
+    -> f64 
+    {
+        #[cfg(target_arch = "wasm32")]
+        use core::num::Float;
 
         // Precalculate n
         let n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
@@ -108,6 +115,9 @@ pub mod utils {
     ///
     #[inline]
     pub fn utm_central_meridian(zone: u8) -> f64 {
+        #[cfg(target_arch = "wasm32")]
+        use core::num::Float;
+
         (-183.0 + (zone as f64 * 6.0)).to_radians()
     }
 
@@ -124,7 +134,11 @@ pub mod utils {
     /// The footpoint latitude, in radians.
     ///
     #[allow(non_snake_case)]
-    pub fn footpoint_latitude(y: f64, ellipsoid: &Ellipsoid) -> f64 {
+    pub fn footpoint_latitude(y: f64, ellipsoid: &Ellipsoid) 
+    -> f64 
+    {
+        #[cfg(target_arch = "wasm32")]
+        use core::num::Float;
 
         // Precalculate n (Eq. 10.18)
         let n = (ellipsoid.a - ellipsoid.b) / (ellipsoid.a + ellipsoid.b);
@@ -161,6 +175,9 @@ pub mod utils {
     pub fn utm_xy_to_lonlat(mut x: f64, mut y: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
                             -> (f64, f64)
     {
+        #[cfg(target_arch = "wasm32")]
+        use core::num::Float;
+
         // If in southern hemisphere, adjust y accordingly to be negative
         y -= FALSE_NORTHING;
         y /= UTM_SCALE_FACTOR;
@@ -252,6 +269,9 @@ pub mod utils {
     pub fn lonlat_to_utm_xy(mut lon: f64, mut lat: f64, ellipsoid: &Ellipsoid, utm_zone: u8)
                             -> (f64, f64)
     {
+        #[cfg(target_arch = "wasm32")]
+        use core::num::Float;
+
         lon = lon.to_radians();
         lat = lat.to_radians();
 

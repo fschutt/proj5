@@ -128,10 +128,7 @@
 //!
 
 #![cfg(target_arch = "wasm32")]
-#![feature(alloc,lang_items)]
-
-#![cfg(target_arch = "wasm32")]
-#![lang(panic_fmt)]
+#![feature(alloc, lang_items, core_float)]
 
 #![cfg_attr(target_arch = "wasm32", no_std)]
 
@@ -188,3 +185,12 @@ pub mod prelude {
     pub use multithreading::MultithreadingStrategy::*;
     pub use coordinate_buf::CoordinateSource;
 }
+
+#[cfg(target_arch = "wasm32")]
+#[lang = "panic_fmt"] fn panic_fmt() -> ! { loop {} }
+
+#[cfg(target_arch = "wasm32")]
+#[lang = "eh_personality"] extern fn eh_personality() {}
+
+#[cfg(target_arch = "wasm32")]
+#[lang = "stack_exhausted"] extern fn stack_exhausted() {}

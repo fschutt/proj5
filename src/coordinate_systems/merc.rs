@@ -15,11 +15,14 @@ pub struct MercatorSystem;
 use core::f64::consts::PI;
 #[cfg(not(target_arch = "wasm32"))]
 use std::f64::consts::PI;
+#[cfg(target_arch = "wasm32")]
+use core::num::Float;
 
 #[cfg(target_arch = "wasm32")]
 use alloc::Vec;
 #[cfg(target_arch = "wasm32")]
 use alloc::boxed::Box;
+
 
 #[inline(always)]
 fn pj_phi2(ts: f64, e: f64)
