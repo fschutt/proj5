@@ -129,9 +129,8 @@
 
 #![cfg_attr(target_arch = "wasm32", no_std)]
 #![cfg_attr(target_arch = "wasm32", crate_type = "cdylib")]
-#![cfg_attr(target_arch = "wasm32", feature(alloc, lang_items, core_float, core_intrinsics))]
-// #[cfg(target_arch = "wasm32")]
-// #[feature(alloc, lang_items, core_float, core_intrinsics)]
+#![cfg_attr(target_arch = "wasm32", feature(alloc, lang_items, core_float, core_intrinsics, allocator_internals))]
+#![cfg_attr(target_arch = "wasm32", default_lib_allocator)]
 
 #[cfg(target_arch = "wasm32")]
 extern crate alloc;
