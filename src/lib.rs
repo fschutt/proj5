@@ -127,16 +127,20 @@
 //! This way, every coordinate system can talk to every other coordinate system.
 //!
 
-#![cfg(target_arch = "wasm32")]
-#![feature(alloc, lang_items, core_float)]
 
 #![cfg_attr(target_arch = "wasm32", no_std)]
+#![cfg_attr(target_arch = "wasm32", feature(alloc, lang_items, core_float, core_intrinsics))]
+// #[cfg(target_arch = "wasm32")]
+// #[feature(alloc, lang_items, core_float, core_intrinsics)]
+
+#[cfg(target_arch = "wasm32")]
+extern crate alloc;
 
 #[cfg(not(target_arch = "wasm32"))]
 extern crate scoped_threadpool;
 
 #[cfg(target_arch = "wasm32")]
-extern crate alloc;
+mod math;
 
 mod coordinate_systems;
 mod coordinate_buf;
@@ -191,6 +195,3 @@ pub mod prelude {
 
 #[cfg(target_arch = "wasm32")]
 #[lang = "eh_personality"] extern fn eh_personality() {}
-
-#[cfg(target_arch = "wasm32")]
-#[lang = "stack_exhausted"] extern fn stack_exhausted() {}

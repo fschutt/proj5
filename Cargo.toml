@@ -10,9 +10,6 @@ description = "Pure Rust, type-safe alternative to PROJ.4"
 
 [lib]
 path = "src/lib.rs"
-crate-type = ["cdylib"]
-
-[target.'cfg(target_arch = "wasm32")']
 
 [profile.release]
 panic = "abort"

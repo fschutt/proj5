@@ -5,7 +5,7 @@ use proj5::prelude::*;
 fn main() {
 
     // -- single threaded
-    
+
     // warning: PROJ.5 can currently not reproject between different ellipsoids!
     // using different ellipsoids will panic!
     let ellipsoid = WGS_1984_ELLIPSOID;
@@ -24,17 +24,17 @@ fn main() {
         CoordinateBuf {
             data: Vec::new(),
             crs: Box::new(MercatorSystem),
-            ellipsoid: ellipsoid,        
+            ellipsoid: ellipsoid,
         }
     ));
 
     let mut strategy = MultithreadingStrategy::SingleCore;
     source_coordinates.project(&mut target_coordinates, &mut strategy);
 
-    println!("first batch of coordinates: {:#?}", target_coordinates.get_data_ref());    
+    println!("first batch of coordinates: {:#?}", target_coordinates.get_data_ref());
 
     // -- multithreaded
-    
+
     // The MultithreadingStrategy has to be only initialized once
     // and can be reused throughout multiple projections.
     let mut strategy = MultithreadingStrategy::MultiCore(ThreadPool::new(2));
