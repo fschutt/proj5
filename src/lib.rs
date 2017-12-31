@@ -127,8 +127,8 @@
 //! This way, every coordinate system can talk to every other coordinate system.
 //!
 
-
 #![cfg_attr(target_arch = "wasm32", no_std)]
+#![cfg_attr(target_arch = "wasm32", crate_type = "cdylib")]
 #![cfg_attr(target_arch = "wasm32", feature(alloc, lang_items, core_float, core_intrinsics))]
 // #[cfg(target_arch = "wasm32")]
 // #[feature(alloc, lang_items, core_float, core_intrinsics)]
