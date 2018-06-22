@@ -11,7 +11,7 @@ pub struct CoordinateBuf {
     /// The actual coordinates, in (x, y) format
     pub data: Vec<(f64, f64)>,
     /// The coordinate reference system
-    pub crs: Box<Crs>,
+    pub crs: Box<dyn Crs>,
     /// The ellipsoid that is used in this CRS.
     pub ellipsoid: Ellipsoid,
 }
@@ -26,7 +26,7 @@ pub enum CoordinateSource {
 }
 
 impl CoordinateSource
-{    
+{
     /// Project coordinates from `self` to `target`.
     #[no_mangle]
     pub fn project(self, target: &mut CoordinateSource, strategy: &mut MultithreadingStrategy)
@@ -48,7 +48,7 @@ impl CoordinateSource
                 if source_ellipsoid != buf.ellipsoid {
                     temp.project_to_ellipsoid(buf.ellipsoid);
                 }
-                
+
                 CoordinateSource::CoordinateBuf(
                     Box::new(buf.crs.from_lon_lat(temp.data, &temp.ellipsoid, strategy))
                 )

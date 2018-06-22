@@ -15,7 +15,7 @@ use std::fmt::Debug;
 use core::fmt::Debug;
 
 // The general idea is: If Coordinate-reference-system (CRS) A can project in CRS B
-// and CRS B can project into CRS C, then it should be possible to project from 
+// and CRS B can project into CRS C, then it should be possible to project from
 // CRS A to CRS C by doing two conversions: CRS A (Original) -> CRS B (Base) -> CRS C (Target)
 
 // However, this conversion must adhere to the following:
@@ -40,11 +40,11 @@ pub trait FromLonLat
 }
 
 pub trait Crs: ToLonLat + FromLonLat + Debug {
-    fn clone(&self) -> Box<Crs>;
+    fn clone(&self) -> Box<dyn Crs>;
 }
 
 impl<T> Crs for T where T: ToLonLat + FromLonLat + Debug + Clone + 'static {
-    fn clone(&self) -> Box<Crs> {
+    fn clone(&self) -> Box<dyn Crs> {
         Box::new((*self).clone())
     }
 }
