@@ -17,4 +17,4 @@ panic = "abort"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-scoped_threadpool = "0.1.*"
+scoped_threadpool = "0.1.9"
