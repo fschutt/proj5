@@ -4,22 +4,29 @@
     <title>PROJ5 WASM example</title>
 </head>
 <body>
-
+    <h1>PROJ5 WASM coordinate calculator example</h1>
     <p>
-        Please enter your source coordinates into the field below and click convert.<br/>
-        Coordinates are seperated by comma, with 2 entries per row, i.e.:
+        This tool uses the PROJ5 Rust library, compiled to a 56KB WASM file in order
+        to transform a buffer of coordinates between longitude/latitude, UTM and
+        Web Mercator (EPSG 3857).
+    </p>
+    <p>
+        Enter your source coordinates into the field below and click convert.<br/>
+        Coordinates are seperated by comma, with 2 entries per row, like this:
     </p>
 
     <code>
     8.40404, 45.28383<br/>
     5.12345, 13.58589
     </code>
+    <br/>
+    <br/>
 
-    <br/>
-    <br/>
     <strong>
-        Note: Coordinates are always X, then Y, i.e.
-        longitude, then latitude and East, North!
+        Note: Coordinates are always X, then Y: (Longitude, Latitude) instead of (Latitude, Longitude)
+        and (Easting, Northing) instead of (Northing, Easting) like usual.<br/>
+        False easting (+ 500.000 m inside of UTM zone) and false northing
+        (+ 10.000.000 m for values above the equator) are accounted for automatically.
     </strong>
 
     <p>The output order will correspond to your input order.</p>
@@ -108,7 +115,7 @@ function load_wasm_file(filename) {
         };
 
         // Create the instance.
-        return new WebAssembly.Instance(mod, proj5Wasm);
+        return new WebAssembly.instantiate(mod, proj5Wasm);
     });
 }
 
