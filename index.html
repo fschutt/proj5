@@ -80,13 +80,18 @@ const proj5Wasm = {
 // .then(_ => document.getElementById("convert").addEventListener("click", convert_coordinates));
 
 function load_wasm_file(filename) {
-    fetch(filename, {'mode': 'no-cors'})
-    .then(response => {
-        console.log(response);
-        response.arrayBuffer()
+    fetch(filename, {
+        'mode': 'no-cors'
     })
-    .then(bytes => WebAssembly.compile(bytes))
-    .then(mod => {
+    .then((response) => {
+        console.log(response);
+        return response.arrayBuffer();
+    })
+    .then((bytes) => {
+        console.log(bytes);
+        return WebAssembly.compile(bytes);
+    })
+    .then((mod) => {
         // Create the imports for the module, including the
         // standard dynamic library imports
         const memory = new WebAssembly.Memory({ initial: 256 });
@@ -107,9 +112,10 @@ function load_wasm_file(filename) {
     });
 }
 
-// https://raw.githubusercontent.com/fschutt/proj5/master/examples/wasm_usage_example/proj5.wasm
+//load_wasm_file('https://raw.githubusercontent.com/fschutt/proj5/master/examples/proj5.wasm');
 load_wasm_file('examples/proj5.wasm')
-.then(result => {
+
+.then((result) => {
     proj5Wasm = result;
     document.getElementById("convert").addEventListener("click", convert_coordinates)
 });
