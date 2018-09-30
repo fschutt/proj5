@@ -1,10 +1,5 @@
 use prelude::*;
 
-#[cfg(target_arch = "wasm32")]
-use alloc::boxed::Box;
-#[cfg(target_arch = "wasm32")]
-use alloc::Vec;
-
 /// A buffer of coordinates. Units are arbitrary.
 #[repr(C)]
 pub struct CoordinateBuf {

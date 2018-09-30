@@ -11,19 +11,9 @@ use prelude::*;
 #[derive(Debug, Copy, Clone)]
 pub struct MercatorSystem;
 
-#[cfg(target_arch = "wasm32")]
-use alloc::Vec;
-#[cfg(target_arch = "wasm32")]
-use alloc::boxed::Box;
-
 mod utils {
 
-    #[cfg(not(target_arch = "wasm32"))]
     use std::f64::consts::PI;
-    #[cfg(target_arch = "wasm32")]
-    use math::Float;
-    #[cfg(target_arch = "wasm32")]
-    use math::PI;
 
     #[inline(always)]
     pub fn pj_phi2(ts: f64, e: f64)
@@ -91,9 +81,6 @@ impl ToLonLat for MercatorSystem {
     fn to_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                   -> LonLatBuf
     {
-        #[cfg(target_arch = "wasm32")]
-        use math::Float;
-
         let temp = ellipsoid.b / ellipsoid.a;
         let e = (1.0 - (temp * temp)).sqrt();
 
@@ -104,7 +91,7 @@ impl ToLonLat for MercatorSystem {
                     *y = utils::merc_y_to_lat(*y, ellipsoid.b, e);
                 }
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut x, ref mut y) in data.iter_mut() {
@@ -115,7 +102,7 @@ impl ToLonLat for MercatorSystem {
                     }
                 });
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 
@@ -131,9 +118,6 @@ impl FromLonLat for MercatorSystem {
     fn from_lon_lat(&self, mut data: Vec<(f64, f64)>, ellipsoid: &Ellipsoid, strategy: &mut MultithreadingStrategy)
                     -> CoordinateBuf
     {
-        #[cfg(target_arch = "wasm32")]
-        use math::Float;
-
         let temp = ellipsoid.b / ellipsoid.a;
 
         // TODO: copy-pasted! bad!
@@ -144,7 +128,7 @@ impl FromLonLat for MercatorSystem {
                     *lat = utils::lat_to_mercator_y(*lat, ellipsoid.a, temp);
                 }
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     // Create references to each element in the vector ...
@@ -157,7 +141,7 @@ impl FromLonLat for MercatorSystem {
                     }
                 });
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 

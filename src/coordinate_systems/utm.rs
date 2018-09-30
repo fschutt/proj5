@@ -2,11 +2,6 @@
 
 use prelude::*;
 
-#[cfg(target_arch = "wasm32")]
-use alloc::Vec;
-#[cfg(target_arch = "wasm32")]
-use alloc::boxed::Box;
-
 /// UTM System
 #[derive(Debug, Copy, Clone)]
 pub struct UTMSystem {
@@ -16,8 +11,6 @@ pub struct UTMSystem {
 pub mod utils {
 
     use prelude::*;
-    #[cfg(target_arch = "wasm32")]
-    use math::Float;
 
     pub const UTM_SCALE_FACTOR: f64 = 0.9996;
     pub const FALSE_EASTING: f64 = 500000.0;
@@ -331,7 +324,7 @@ impl ToLonLat for UTMSystem {
                     *x = lon; *y = lat;
                 }
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut x, ref mut y) in data.iter_mut() {
@@ -342,7 +335,7 @@ impl ToLonLat for UTMSystem {
                     }
                 });
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 
@@ -366,7 +359,7 @@ impl FromLonLat for UTMSystem {
                     *lon = x; *lat = y;
                 }
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             MultiCore(ref mut thread_pool) => {
                 thread_pool.scoped(|scoped| {
                     for &mut (ref mut lon, ref mut lat) in data.iter_mut() {
@@ -377,7 +370,7 @@ impl FromLonLat for UTMSystem {
                     }
                 });
             },
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
             _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 

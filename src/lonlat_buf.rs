@@ -1,8 +1,5 @@
 use ellipsoid::Ellipsoid;
 
-#[cfg(target_arch = "wasm32")]
-use alloc::Vec;
-
 /// A special version of a CoordinateBuf
 /// Every CRS that implements the `Crs` trait can project in and out of a `LonLatBuf`
 #[repr(C)]

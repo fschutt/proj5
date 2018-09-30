@@ -3,16 +3,7 @@
 use coordinate_buf::CoordinateBuf;
 use lonlat_buf::LonLatBuf;
 use prelude::*;
-
-#[cfg(target_arch = "wasm32")]
-use alloc::boxed::Box;
-#[cfg(target_arch = "wasm32")]
-use alloc::Vec;
-
-#[cfg(not(target_arch = "wasm32"))]
 use std::fmt::Debug;
-#[cfg(target_arch = "wasm32")]
-use core::fmt::Debug;
 
 // The general idea is: If Coordinate-reference-system (CRS) A can project in CRS B
 // and CRS B can project into CRS C, then it should be possible to project from

@@ -10,11 +10,10 @@ description = "Pure Rust, type-safe alternative to PROJ.4"
 
 [lib]
 path = "src/lib.rs"
+crate-type = ["cdylib", "lib"]
 
-[profile.release]
-panic = "abort"
+[dependencies]
+scoped_threadpool = { version = "0.1.9", optional = true }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-scoped_threadpool = "0.1.9"
+[features]
+multithreading = ["scoped_threadpool"]

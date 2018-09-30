@@ -23,13 +23,6 @@
 //! PROJ.5 defines the 24 standard ellipsoids (such as WGS84, Bessel, etc.),
 //! but you can make your own ellipsoids.
 //!
-//! ## Changelog
-//!
-//! - 0.1.5: Updated to `dyn Trait` syntax to prepare for possible Rust 2018 breakage
-//!          This version will only compile on Rust 1.27 or higher, use 0.1.4 for older
-//!          compilers
-//! - 0.1.4: Fixed large mathematical mistake in UTM projection
-//!
 //! ## Usage
 //!
 //! ```rust
@@ -134,19 +127,11 @@
 //! This way, every coordinate system can talk to every other coordinate system.
 //!
 
-#![cfg_attr(target_arch = "wasm32", no_std)]
-#![cfg_attr(target_arch = "wasm32", crate_type = "cdylib")]
-#![cfg_attr(target_arch = "wasm32", feature(alloc, lang_items, core_float, core_intrinsics, allocator_internals))]
-#![cfg_attr(target_arch = "wasm32", default_lib_allocator)]
-
-#[cfg(target_arch = "wasm32")]
-extern crate alloc;
-
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
 extern crate scoped_threadpool;
 
-#[cfg(target_arch = "wasm32")]
-mod math;
+// #[cfg(target_arch = "wasm32")]
+// mod math;
 
 mod coordinate_systems;
 mod coordinate_buf;
@@ -161,7 +146,7 @@ pub use traits::{
     Crs,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
 pub use scoped_threadpool::Pool as ThreadPool;
 
 pub use multithreading::MultithreadingStrategy;
@@ -189,7 +174,7 @@ pub mod prelude {
     pub use coordinate_buf::CoordinateBuf;
     pub use ellipsoid::*;
     pub use crs::*;
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
     pub use ThreadPool;
     pub use multithreading::MultithreadingStrategy;
     pub use multithreading::MultithreadingStrategy::*;
@@ -197,7 +182,94 @@ pub mod prelude {
 }
 
 #[cfg(target_arch = "wasm32")]
-#[lang = "panic_fmt"] fn panic_fmt() -> ! { loop {} }
-
+pub use wasm_reexport::*;
 #[cfg(target_arch = "wasm32")]
-#[lang = "eh_personality"] extern fn eh_personality() {}
+pub use coordinate_systems::utm::utils::*;
+
+
+pub mod wasm_reexport {
+
+    //! Functions that can be called from C or WASM without
+    //! interacting with Rust types (except for `Vec`).
+    //!
+    //! Note that all of these functions use the `WGS_1984_ELLIPSOID`.
+    //! All functions are marked with `#[no_mangle]`, so they may be
+    //! called from C or WASM.
+
+    use prelude::*;
+
+    const ELLIPSOID: Ellipsoid = WGS_1984_ELLIPSOID;
+
+    /// Reprojects from lon-lat (warning: not latlon, note the order!)
+    /// to UTM using the `WGS_1984_ELLIPSOID`.
+    #[no_mangle]
+    pub fn lonlat_to_utm(data: Vec<(f64, f64)>, target_utm_zone: u8) -> Vec<(f64, f64)> {
+        let crs = Box::new(UTMSystem { utm_zone: target_utm_zone });
+        lonlat_to_crs_inner(data, crs)
+    }
+
+    /// Reprojects from lon-lat (warning: not latlon, note the order!) to Mercator
+    #[no_mangle]
+    pub fn lonlat_to_mercator(data: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
+        let crs = Box::new(MercatorSystem);
+        lonlat_to_crs_inner(data, crs)
+    }
+
+    /// Reprojects from UTM (Easting, Northing, note the order!) and a given UTM zone
+    /// to lat-lon coordinates.
+    #[no_mangle]
+    pub fn utm_to_lonlat(data: Vec<(f64, f64)>, target_utm_zone: u8) -> Vec<(f64, f64)> {
+        let crs = Box::new(UTMSystem { utm_zone: target_utm_zone });
+        crs_to_lonlat_inner(data, crs)
+    }
+
+    /// Reprojects from Mercator (Easting, Northing, note the order!) to lat-lon coordinates
+    #[no_mangle]
+    pub fn mercator_to_lonlat(data: Vec<(f64, f64)>) -> Vec<(f64, f64)> {
+        let crs = Box::new(MercatorSystem);
+        crs_to_lonlat_inner(data, crs)
+    }
+
+    // Rust-only since it uses the
+    fn lonlat_to_crs_inner(data: Vec<(f64, f64)>, crs: Box<Crs>) -> Vec<(f64, f64)> {
+        let source_len = data.len();
+        let mut strategy = MultithreadingStrategy::SingleCore;
+
+        let source = CoordinateSource::LonLatBuf(Box::new(
+            LonLatBuf {
+                data: data,
+                ellipsoid: ELLIPSOID,
+            }));
+
+        let mut target = CoordinateSource::CoordinateBuf(Box::new(
+            CoordinateBuf {
+                data: Vec::with_capacity(source_len),
+                crs: crs,
+                ellipsoid: ELLIPSOID,
+            }));
+
+        source.project(&mut target, &mut strategy);
+        target.into_data()
+    }
+
+    fn crs_to_lonlat_inner(data: Vec<(f64, f64)>, crs: Box<Crs>) -> Vec<(f64, f64)> {
+        let source_len = data.len();
+        let mut strategy = MultithreadingStrategy::SingleCore;
+
+        let target = CoordinateSource::CoordinateBuf(Box::new(
+            CoordinateBuf {
+                data,
+                crs,
+                ellipsoid: ELLIPSOID,
+            }));
+
+        let mut source = CoordinateSource::LonLatBuf(Box::new(
+            LonLatBuf {
+                data: Vec::with_capacity(source_len),
+                ellipsoid: ELLIPSOID,
+            }));
+
+        target.project(&mut source, &mut strategy);
+        source.into_data()
+    }
+}

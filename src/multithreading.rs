@@ -1,4 +1,4 @@
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
 use ThreadPool;
 
 /// How should the coordinate transformation be parallelized?
@@ -7,15 +7,6 @@ pub enum MultithreadingStrategy {
     /// Choose the single-core implementation
     SingleCore,
     /// Choose the multi-core implementation
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
     MultiCore(ThreadPool),
-    /// Only try OpenCL
-    #[cfg(not(target_arch = "wasm32"))]
-    OpenClOnly,
-    /// Choose multithreading if initializing OpenCL doesn't work
-    #[cfg(not(target_arch = "wasm32"))]
-    OpenClThenMultithreading(ThreadPool),
-    /// Choose a single thread if initializing OpenCL doesn't work 
-    #[cfg(not(target_arch = "wasm32"))]
-    OpenClThenSinglethreading,
 }
