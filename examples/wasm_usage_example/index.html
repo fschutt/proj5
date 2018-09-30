@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PROJ5 WASM example</title>
+</head>
+<body>
+
+    <p>
+        Please enter your source coordinates into the field below and click convert.<br/>
+        Coordinates are seperated by comma, with 2 entries per row, i.e.:
+    </p>
+
+    <code>
+    8.40404, 45.28383<br/>
+    5.12345, 13.58589
+    </code>
+
+    <br/>
+    <br/>
+    <strong>
+        Note: Coordinates are always X, then Y, i.e.
+        longitude, then latitude and East, North!
+    </strong>
+
+    <p>The output order will correspond to your input order.</p>
+    <label for="input_coordinate_type">From:</label>
+    <select id="input_coordinate_type">
+      <option value="lonlat" selected="selected">(Longitude, Latitude)</option>
+      <option value="utm">UTM (Easting, Northing)</option>
+      <option value="mercator">Mercator (Easting, Northing)</option>
+    </select>
+    <br/>
+
+
+    <label for="output_coordinate_type">To:&nbsp;&nbsp;&nbsp;&nbsp;</label>
+    <select id="output_coordinate_type">
+      <option value="lonlat">(Longitude, Latitude)</option>
+      <option value="utm" selected="selected">UTM (Easting, Northing)</option>
+      <option value="mercator">Mercator (Easting, Northing)</option>
+    </select>
+    <label for="input_utm_zone">UTM zone:</label>
+    <input type="number" name="input_utm_zone" placeholder="UTM zone" value="0" cols="4"/>
+    <br/>
+    <br/>
+
+    <label for="input_coordinates">Input coordinates:</label><br/>
+    <textarea name="input_coordinates" rows="8" cols="80"></textarea>
+    <br/>
+    <br/>
+
+    <button onclick="convert()">Convert!</button>
+
+    <p>Output:</p>
+    <textarea id="output_coordinates" rows="8" cols="80"></textarea>
+</body>
+
+<script type="text/javascript">
+
+/// Fetch and load WASM
+var proj5 = {
+  imports: { imported_func: arg => console.log(arg) }
+};
+
+WebAssembly.instantiateStreaming(fetch('./proj5.wasm'), proj5)
+.then(obj => obj.instance.exports.exported_func());
+
+function convert() {
+    alert("convert!");
+}
+</script>
+
+</html>
