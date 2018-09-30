@@ -107,7 +107,8 @@ function load_wasm_file(filename) {
     });
 }
 
-load_wasm_file('https://raw.githubusercontent.com/fschutt/proj5/master/examples/wasm_usage_example/proj5.wasm')
+// https://raw.githubusercontent.com/fschutt/proj5/master/examples/wasm_usage_example/proj5.wasm
+load_wasm_file('examples/proj5.wasm')
 .then(result => {
     proj5Wasm = result;
     document.getElementById("convert").addEventListener("click", convert_coordinates)
