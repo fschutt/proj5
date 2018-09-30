@@ -37,7 +37,10 @@ fn main() {
 
     // The MultithreadingStrategy has to be only initialized once
     // and can be reused throughout multiple projections.
+    #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
     let mut strategy = MultithreadingStrategy::MultiCore(ThreadPool::new(2));
+    #[cfg(not(feature = "scoped_threadpool"))]
+    let mut strategy = MultithreadingStrategy::SingleCore;
 
     let lon_lat_coordinates = CoordinateSource::LonLatBuf(Box::new(
         LonLatBuf {

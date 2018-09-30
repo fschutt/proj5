@@ -48,7 +48,7 @@
     <br/>
     <br/>
 
-    <button onclick="convert()">Convert!</button>
+    <button id="convert">Convert!</button>
 
     <p>Output:</p>
     <textarea id="output_coordinates" rows="8" cols="80"></textarea>
@@ -57,14 +57,63 @@
 <script type="text/javascript">
 
 /// Fetch and load WASM
-var proj5 = {
-  imports: { imported_func: arg => console.log(arg) }
+const memory = new WebAssembly.Memory({ initial: 256, maximum: 256 });
+const proj5Wasm = {
+    env: {
+        abortStackOverflow: () => { throw new Error('overflow'); },
+        table: new WebAssembly.Table({ initial: 0, maximum: 0, element: 'anyfunc' }),
+        tableBase: 0,
+        memory: memory,
+        memoryBase: 1024,
+        STACKTOP: 0,
+        STACK_MAX: memory.buffer.byteLength,
+    }
 };
 
-WebAssembly.instantiateStreaming(fetch('./proj5.wasm'), proj5)
-.then(obj => obj.instance.exports.exported_func());
+// var importObject = new WebAssembly.Instance(new WebAssembly.Module(getBinary()), info);
 
-function convert() {
+// NOTE: .instantiateStreaming requires the source to have 'application/wasm'
+// MIME type, which can't be set on GitHub. So we can't use 'instantiateStreaming'.
+//
+// fetch() with arrayBuffer also doesn't work, since it can't
+// WebAssembly.instantiateStreaming(fetch('https://raw.githubusercontent.com/fschutt/proj5/master/examples/wasm_usage_example/proj5.wasm'), importObject)
+// .then(_ => document.getElementById("convert").addEventListener("click", convert_coordinates));
+
+function load_wasm_file(filename) {
+    fetch(filename, {'mode': 'no-cors'})
+    .then(response => {
+        console.log(response);
+        response.arrayBuffer()
+    })
+    .then(bytes => WebAssembly.compile(bytes))
+    .then(mod => {
+        // Create the imports for the module, including the
+        // standard dynamic library imports
+        const memory = new WebAssembly.Memory({ initial: 256 });
+        const proj5Wasm = {
+            env: {
+                abortStackOverflow: () => { throw new Error('Stack overflow'); },
+                table: new WebAssembly.Table({ initial: 0, maximum: 0, element: 'anyfunc' }),
+                tableBase: 0,
+                memory: memory,
+                memoryBase: 0, // 1024? Not sure.
+                STACKTOP: 0,
+                STACK_MAX: memory.buffer.byteLength,
+            }
+        };
+
+        // Create the instance.
+        return new WebAssembly.Instance(mod, proj5Wasm);
+    });
+}
+
+load_wasm_file('https://raw.githubusercontent.com/fschutt/proj5/master/examples/wasm_usage_example/proj5.wasm')
+.then(result => {
+    proj5Wasm = result;
+    document.getElementById("convert").addEventListener("click", convert_coordinates)
+});
+
+function convert_coordinates() {
     alert("convert!");
 }
 </script>
