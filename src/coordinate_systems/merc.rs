@@ -139,8 +139,6 @@ impl FromLonLat for MercatorSystem {
                     }
                 });
             },
-            #[cfg(all(not(target_arch = "wasm32"), feature = "scoped_threadpool"))]
-            _ => unimplemented!("Multithreading methods other than SingleCore and MultiCore are not yet implemented!"),
         }
 
         CoordinateBuf {
