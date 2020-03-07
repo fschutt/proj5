@@ -1,6 +1,6 @@
 [package]
 name = "proj5"
-version = "0.1.6"
+version = "0.1.7"
 authors = ["Felix Schütt <felix.schuett@maps4print.com>"]
 repository = "https://github.com/fschutt/proj5"
 homepage = "https://github.com/fschutt/proj5"
