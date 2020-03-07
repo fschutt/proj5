@@ -34,7 +34,7 @@ mod utils {
             dphi = HALFPI - 2.0 * (ts * ((1.0 - con) / (1.0 + con)).powf(eccnth)).atan() - phi;
             phi += dphi;
 
-            if dphi.abs() > TOL && (iteration_cnt - 1) > 0 { break; } else { iteration_cnt -= 1; }
+            if dphi.abs() < TOL || (iteration_cnt - 1) < 0 { break; } else { iteration_cnt -= 1; }
         }
 
         return phi;
