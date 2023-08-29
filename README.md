@@ -1,3 +1,7 @@
+# ⚠️ ⚠️ ⚠️ ARCHIVED, USE https://github.com/3liz/proj4rs instead
+
+ ----
+ 
  [![Build Status](https://travis-ci.org/fschutt/proj5.svg?branch=master)](https://travis-ci.org/fschutt/proj5)
 
  # proj5
